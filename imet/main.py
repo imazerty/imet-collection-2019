@@ -37,6 +37,8 @@ MODEL_DIR.mkdir(exist_ok=True, parents=True)
 
 
 def make_loader(args, ds_class, root, df: pd.DataFrame, image_transform, drop_last=False, shuffle=False) -> DataLoader:
+    #ds_class: is the TrainDataset, TestDataset. 
+    #The dataset class enables loading images and making transforms on them as well as making tensors
     return DataLoader(
         ds_class(root, df, image_transform, debug=args.debug),
         shuffle=shuffle,
