@@ -217,10 +217,12 @@ def print_eval(truth, preds):
     print(f"f2: {best_score:.4f} @ threshold {threshold:.2f}")
     print(f"loss: {log_loss(truth, preds) / preds.shape[1]:.8f}")
 
-
+#For validating
 def eval_model(args, valid_loaders: List[DataLoader]):
     model_dir = MODEL_DIR / args.model
+    #reload saved model
     model = torch.load(str(model_dir / f"final_{args.fold}.pth"))
+    #move model to GPU
     model = model.cuda()
     bot = ImageClassificationBot(
         model=model, train_loader=None,
@@ -230,6 +232,7 @@ def eval_model(args, valid_loaders: List[DataLoader]):
     )
     tmp = []
     for valid_loader in valid_loaders:
+        #Here return_y=True unlike in predict_model
         preds, truth = bot.predict(valid_loader, return_y=True)
         preds = torch.sigmoid(preds)
         tmp.append(preds.numpy())
@@ -246,7 +249,7 @@ def eval_model(args, valid_loaders: List[DataLoader]):
             final_preds
         )
 
-
+#FOR TESTING
 def predict_model(args, df: pd.DataFrame, loaders: List[DataLoader], name: str):
     model_dir = MODEL_DIR / args.model
     model = torch.load(str(model_dir / f"final_{args.fold}.pth"))
@@ -302,12 +305,13 @@ def main():
     if args.mode in ("train", "validate", "predict_valid"):
         folds = pd.read_pickle(CACHE_DIR / 'folds.pkl')
         train_root = DATA_ROOT / 'train'
+        #validate on the fold given and the rest is for training
         train_fold = folds[folds['fold'] != args.fold]
         valid_fold = folds[folds['fold'] == args.fold]
         if args.limit:
             train_fold = train_fold[:args.limit]
             valid_fold = valid_fold[:args.limit]
-
+    #Make sure there's GPU
     use_cuda = cuda.is_available()
     train_transform = get_train_transform(cv2.BORDER_REFLECT_101)
     test_transform = get_test_transform()
