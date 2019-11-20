@@ -8,6 +8,9 @@ class BaseLRScheduler(_LRScheduler):
         if not isinstance(optimizer, Optimizer):
             flag = False
             try:
+                #FP16_Optimizer
+                #is designed to wrap an existing PyTorch optimizer,
+                #and manage static or dynamic loss scaling and master weights
                 from apex.fp16_utils.fp16_optimizer import FP16_Optimizer
                 if isinstance(optimizer, FP16_Optimizer):
                     flag = True
@@ -19,6 +22,9 @@ class BaseLRScheduler(_LRScheduler):
         self.optimizer = optimizer
         if last_epoch == -1:
             for group in optimizer.param_groups:
+                #setdefault has nthg to do with pytorch
+                #if 'initial_lr' is in the dictionary, nothing happens, but,
+                #If 'initial_lr' is not in the dictionary, insert it with the value of group['lr']
                 group.setdefault('initial_lr', group['lr'])
         else:
             for i, group in enumerate(optimizer.param_groups):
