@@ -49,15 +49,21 @@ def make_loader(args, ds_class, root, df: pd.DataFrame, image_transform, drop_la
 
 
 def opt_params(layer, learning_rate, final_lr):
+    """prepares dict"""
     return {'params': layer.parameters(), 'lr': learning_rate, 'final_lr': final_lr}
 
-
+"""
+setup_differential_learning_rates is used in train_stage_two to define the optimizer:
+optimizer = WeightDecayOptimizerWrapper(setup_differential_learning_rates(
+            partial(torch.optim.Adam, weight_decay=0), 
+            model, [1e-5, 8e-5, 5e-4], [1., 1., 1.]
+        )"""
 def setup_differential_learning_rates(
         optimizer_constructor: Callable[[List[Dict]], torch.optim.Optimizer],
         layer_groups: List[nn.Parameter],
         lrs: List[float], final_lrs: List[float]) -> torch.optim.Optimizer:
-    assert len(layer_groups) == len(
-        lrs), f'size mismatch, expected {len(layer_groups)} lrs, but got {len(lrs)}'
+    
+    assert len(layer_groups) == len(lrs), f'size mismatch, expected {len(layer_groups)} lrs, but got {len(lrs)}'
     optimizer = optimizer_constructor(
         [opt_params(*p) for p in zip(layer_groups, lrs, final_lrs)])
     return optimizer
