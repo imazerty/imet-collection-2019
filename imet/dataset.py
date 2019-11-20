@@ -31,6 +31,7 @@ class TrainDataset(Dataset):
         item = self._df.iloc[idx]
         image = load_transform_image(
             item, self._root, self._image_transform, debug=self._debug)
+        #from_numpy().float() returns a CPU tensor and cast it to a lower precision (32-bit float)
         target = torch.from_numpy(
             item.iloc[1:-1].values.astype("float32")).float()
         return image, target
@@ -65,6 +66,7 @@ def load_transform_image(
 
 
 def load_image(item, root: Path) -> Image.Image:
+    """loads image from root/item.id in rgb"""
     image = cv2.imread(str(root / f'{item.id}.png'))
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # base_size = min(image.shape[0], image.shape[1])
