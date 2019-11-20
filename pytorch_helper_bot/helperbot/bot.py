@@ -15,6 +15,7 @@ from .logger import Logger
 from .metrics import Metric
 
 try:
+    #apex.amp is a tool to enable mixed precision training
     from apex import amp
     APEX_AVAILABLE = True
 except ModuleNotFoundError:
@@ -42,6 +43,7 @@ class BaseBot:
     clip_grad: float = 0
     batch_idx: int = 0
     checkpoint_dir: Path = Path("./data/cache/model_cache/")
+    #GPU (referred to as cuda or cuda:0)
     device: Union[str, torch.device] = "cuda:0"
     log_dir: Path = Path("./data/cache/logs/")
     log_level: int = logging.INFO
@@ -167,6 +169,7 @@ class BaseBot:
         if self.val_loader is not None:
             best_val_loss = 100
         epoch = 0
+        #number of consequent epochs without improvement: to keep track of stagnation of loss
         wo_improvement = 0
         self.best_performers = []
         self.logger.info(
@@ -174,6 +177,7 @@ class BaseBot:
         self.logger.info("Batches per epoch: {}".format(
             len(self.train_loader)))
         try:
+            #iterating over epochs
             while self.step < n_steps:
                 epoch += 1
                 self.logger.info(
@@ -190,17 +194,21 @@ class BaseBot:
                     if ((callable(snapshot_interval) and snapshot_interval(self.step))
                             or (not callable(snapshot_interval) and self.step % snapshot_interval == 0)):
                         loss = self.snapshot()
+                        #At least a minimum improvement in loss is demanded to update best_val_loss
                         if best_val_loss > loss + min_improv:
                             self.logger.info("New low\n")
                             best_val_loss = loss
                             wo_improvement = 0
                         else:
+                            #another epoch that didn't improve the loss, 
                             wo_improvement += 1
                         if keep_n_snapshots > 0:
                             self.remove_checkpoints(keep=keep_n_snapshots)
                     self.run_step_ends_callbacks()
+                    #stop training if both earlystopping and number of epochs without improvement more than early_stopping_cnt
                     if early_stopping_cnt and wo_improvement > early_stopping_cnt:
                         return
+                    #if we finish training for all the epochs
                     if self.step >= n_steps:
                         break
                 self.run_epoch_ends_callbacks(epoch + 1)
