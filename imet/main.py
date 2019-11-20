@@ -5,6 +5,16 @@ import json
 from pathlib import Path
 import warnings
 from typing import Dict, Callable, List
+"""
+Partial functions allow one to derive a function
+with x parameters to a function with fewer parameters 
+and fixed values set for the more limited function.
+the default values will start replacing variables from the left. 
+example: # create a new function that multiplies by 2
+def multiply(x,y):
+        return x * y
+dbl = partial(multiply,2)
+"""
 from functools import partial
 from dataclasses import dataclass
 
