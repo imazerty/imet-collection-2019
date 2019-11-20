@@ -71,7 +71,7 @@ def get_train_transform(border_mode, size=320):
         # JpegCompression(quality_lower=50, quality_upper=100, p=0.5)
     ])
 
-
+#For TTA?
 def get_test_transform(size=320, flip=True):
     transformations = [
         # SmallestMaxSize(320),
